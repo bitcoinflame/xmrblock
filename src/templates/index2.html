@@ -1,0 +1,147 @@
+
+<div class="center" id="current-status">
+     <h3 style="font-size: 12px; margin-top: 20px">
+
+         Last updated: <span id="last-updated">{{server_timestamp}}</span>  | <a href="/txpool">Transaction pool</a>
+         {{#enable_pusher}}
+            | <a href="/rawtx">Transaction pusher </a>
+         {{/enable_pusher}}
+         {{#enable_key_image_checker}}
+            | <a href="/rawkeyimgs">Key images checker</a>
+         {{/enable_key_image_checker}}
+         {{#enable_output_key_checker}}
+            | <a href="/rawoutputkeys">Output keys checker</a>
+         {{/enable_output_key_checker}}
+         {{#enable_autorefresh_option}}
+             |
+            {{#refresh}}
+                <a href="/">Autorefresh is ON (10 s)</a>
+            {{/refresh}}
+            {{^refresh}}
+               <a href="/autorefresh">Autorefresh is OFF</a>
+            {{/refresh}}
+         {{/enable_autorefresh_option}}
+         {{#testnet_url}}
+            | <a href="{{testnet_url}}">Go to testnet explorer</a>
+         {{/testnet_url}}
+         {{#stagenet_url}}
+            | <a href="{{stagenet_url}}">Go to stagenet explorer</a>
+         {{/stagenet_url}}
+         {{#mainnet_url}}
+            | <a href="{{mainnet_url}}">Go to mainnet explorer</a>
+         {{/mainnet_url}}
+         {{#testnet}}
+            | This is <span style="color:#ff6b62">testnet</span> blockchain
+         {{/testnet}}
+         {{#stagenet}}
+            | This is <span style="color:#ff6b62">stagenet</span> blockchain
+         {{/stagenet}}
+
+        </h3>
+
+
+    {{#network_info}}
+        <h3 style="font-size: 12px; margin-top: 5px; margin-bottom: 3">
+            Network difficulty: <span id="network-info-diff">{{difficulty}}</span>
+            | Hard fork: <span id="network-info-hardfork">v{{current_hf_version}}</span>
+            | Hash rate: <span id="network-info-hashrate">{{hash_rate}}</span>
+            | Fee per kb: <span id="network-info-fee-kb">{{fee_per_kb}}</span>
+            | Median block size limit: <span id="network-info-block-limit">{{block_size_limit}}</span> kB
+            {{^is_current_info}}
+            <span id="network-info-old">| Data from {{age}} {{age_format}} ago</span>
+            {{/is_current_info}}
+        </h3>
+    {{/network_info}}
+
+    {{#emission}}
+        <h3 style="font-size: 12px; margin-top: 2px">
+            BitcoinFlame emission (fees) is <span id="emission-amount">{{amount}}</span> (<span id="emission-fees">{{fee_amount}}</span>)
+            as of <span id="emission-block">{{blk_no}}</span> block
+        </h3>
+    {{/emission}}
+
+
+</div>
+
+    <div id="auto-update" class="center updates-enabled" style="display: none">
+        <span class="updating">
+            Data on this page is automatically updating every 30 seconds.
+            <a href="#">Disable updates</a>
+        </span>
+        <span class="not-updating">
+            Data on this page is <i>NOT</i> automatically updating.
+            <a href="#">Enable updates</a>
+        </span>
+    </div>
+
+    {{{mempool_info}}}
+
+    {{#is_page_zero}}
+      <h2 style="margin-bottom: 0px">Transactions in the last {{no_of_last_blocks}} blocks</h2>
+    {{/is_page_zero}}
+    {{^is_page_zero}}
+      <h2 style="margin-bottom: 0px">Transactions in older blocks<!--(height: {{height}})--></h2>
+    {{/is_page_zero}}
+
+    <h4 id="median-size" style="font-size: 14px; margin-top: 0px">(Median size of 100 blocks: <span id="blk-size-median">{{blk_size_median}}</span> kB)</h4>
+
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="application/javascript">function numOfLastBlocks() { return {{no_of_last_blocks}}; }</script>
+    <script src="/blockchain.js"></script>
+    <script src="/blockchain-custom.js"></script>
+
+    <div id="block-list" class="center">
+
+            <table class="blocks">
+                <tr>
+                    <th class="height">height</th>
+                    <th class="age">age {{age_format}}<!--(Δm)--></th>
+                    <th class="diff">difficulty</th>
+                    <th class="pool">pool</th>
+                    <th class="size">size [kB]<!--(Δm)--></th>
+                    <th class="hash">block/tx hash</th>
+                    <th class="fees">fee</th>
+                    <th class="outputs">outputs</th>
+                    <th class="inputs">in/out/pID</th>
+                    <th class="mixin">ring size</th>
+                    <th class="txsize">tx size [kB]</th>
+                </tr>
+                {{#txs}}
+                <tr{{#height}} class="block-row" id="block-height-{{height}}"{{/height}}>
+                    <td class="height"><a href="/block/{{height}}">{{height}}</a></td>
+                    <td class="age {{age_class}}" title="{{{age_title}}}">{{age}}<!--{{time_delta}}--></td>
+                    <td class="diff">{{diff}}</td>
+                    <td class="pool">{{#height}}<a class="find-pool" id="find-{{blk_hash}}"></a>{{/height}}</td>
+                    <td class="size">{{blk_size}}</td>
+                    <td class="hash"><a href="/{{block_or_tx}}/{{blk_or_tx_hash}}">{{blk_or_tx_hash}}</a></td>
+                    <td class="fees">{{tx_fee_short}}</td>
+                    <td class="outputs">{{sum_outputs_short}}</td>
+                    <td class="inputs">{{no_inputs}}/{{no_outputs}}/{{pID}}</td>
+                    <td class="mixin">{{mixin}}</td>
+                    <td class="txsize">{{tx_size_short}}</td>
+                </tr>
+                {{/txs}}
+            </table>
+
+            <div id="pages" class="center" style="text-align: center;">
+             {{^is_page_zero}}
+               <a href="/page/{{prev_page}}">previous page</a> |
+               <a href="/">first page</a> |
+             {{/is_page_zero}}
+                current page: {{page_no}}/<a href="/page/{{total_page_no}}">{{total_page_no}}</a>
+                | <a href="/page/{{next_page}}">next page</a>
+            </div>
+
+    </div>
+
+
+{{#show_cache_times}}
+    <div class="center">
+        <h6 style="margin-top: 1px;color:#949490">
+            Tx details construction time: {{construction_time_total}} s
+            <br/>
+            includes {{construction_time_cached}} s from block cache ({{cache_hits}} hits)
+            and {{construction_time_non_cached}} s from non cache ({{cache_misses}} misses)
+        </h6>
+    </div>
+{{/show_cache_times}}
